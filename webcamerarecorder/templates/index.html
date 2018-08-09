@@ -5,5 +5,10 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<p>Hello!</p>
+<h1>Realtime communication with WebRTC</h1>
+
+<video autoplay playsinline></video>
+
+{% load static %}
+<script src='{% static "js/main.js" %}'></script>
 {% endblock %}
