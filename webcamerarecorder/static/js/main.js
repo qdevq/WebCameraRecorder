@@ -1,6 +1,7 @@
 'use strict';
 
 const mediaSource = new MediaSource();
+const BLOB_SIZE = 10;   // ms
 mediaSource.addEventListener('sourceopen', handleSourceOpen, false);
 let mediaRecorder;
 let recordedBlobs;
@@ -19,7 +20,7 @@ recordButton.addEventListener('click', () => {
     stopRecording();
     recordButton.textContent = 'Start Recording';
     playButton.disabled = false;
-    downloadButton.disabled = false;
+    uploadButton.disabled = false;
   }
 });
 
@@ -45,8 +46,8 @@ playButton.addEventListener('click', () => {
   });
 });
 
-const downloadButton = document.querySelector('button#download');
-downloadButton.addEventListener('click', () => {
+const uploadButton = document.querySelector('button#upload');
+uploadButton.addEventListener('click', () => {
   const blob = new Blob(recordedBlobs, {type: 'video/webm'});
   uploadVideo(blob);
 });
@@ -54,7 +55,7 @@ downloadButton.addEventListener('click', () => {
 function uploadVideo(blobOrFile) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', '/upload_video', true);
-  xhr.onload = function(e) {console.log(e);};
+  xhr.onload = function(e) {console.log('Video uploaded.');};
   xhr.send(blobOrFile);
 }
 
@@ -71,9 +72,7 @@ const constraints = {
 };
 
 function handleSourceOpen(event) {
-  console.log('MediaSource opened');
   sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
-  console.log('Source buffer: ', sourceBuffer);
 }
 
 function handleDataAvailable(event) {
@@ -83,7 +82,7 @@ function handleDataAvailable(event) {
 }
 
 function handleStop(event) {
-  console.log('Recorder stopped: ', event);
+  // TODO upload video then record new
 }
 
 function startRecording() {
@@ -108,25 +107,21 @@ function startRecording() {
     alert(`Exception while creating MediaRecorder: ${e}. mimeType: ${options.mimeType}`);
     return;
   }
-  console.log('Created MediaRecorder', mediaRecorder, 'with options', options);
   recordButton.textContent = 'Stop Recording';
   playButton.disabled = true;
-  downloadButton.disabled = true;
+  uploadButton.disabled = true;
   mediaRecorder.onstop = handleStop;
   mediaRecorder.ondataavailable = handleDataAvailable;
-  mediaRecorder.start(10); // collect 10ms of data
-  console.log('MediaRecorder started', mediaRecorder);
+  mediaRecorder.start(BLOB_SIZE); // collect 10ms of data
 }
 
 function stopRecording() {
   mediaRecorder.stop();
-  console.log('Recorded Blobs: ', recordedBlobs);
   recordedVideo.controls = true;
 }
 
 function handleSuccess(stream) {
   recordButton.disabled = false;
-  console.log('getUserMedia() got stream: ', stream);
   window.stream = stream;
 
   const gumVideo = document.querySelector('video#gum');
