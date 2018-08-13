@@ -1,9 +1,4 @@
-// This code is adapted from
-// https://rawgit.com/Miguelao/demos/master/mediarecorder.html
-
 'use strict';
-
-/* globals MediaRecorder */
 
 const mediaSource = new MediaSource();
 mediaSource.addEventListener('sourceopen', handleSourceOpen, false);
@@ -14,7 +9,6 @@ let sourceBuffer;
 const recordedVideo = document.querySelector('video#recorded');
 recordedVideo.addEventListener('error', function(ev) {
   console.error('MediaRecording.recordedMedia.error()');
-  alert(`Your browser can not play ${recordedVideo.src} media clip. event: ${JSON.stringify(ev)}`);
 }, true);
 
 const recordButton = document.querySelector('button#record');
@@ -54,19 +48,15 @@ playButton.addEventListener('click', () => {
 const downloadButton = document.querySelector('button#download');
 downloadButton.addEventListener('click', () => {
   const blob = new Blob(recordedBlobs, {type: 'video/webm'});
-  // TODO send blob to the server here
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.style.display = 'none';
-  a.href = url;
-  a.download = 'test.webm';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-  }, 100);
+  uploadVideo(blob);
 });
+
+function uploadVideo(blobOrFile) {
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/upload_video', true);
+  xhr.onload = function(e) {console.log(e);};
+  xhr.send(blobOrFile);
+}
 
 // window.isSecureContext could be used for Chrome
 let isSecureOrigin = location.protocol === 'https:' || location.hostname === 'localhost';
