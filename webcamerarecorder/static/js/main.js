@@ -26,24 +26,21 @@ recordButton.addEventListener('click', () => {
 
 const playButton = document.querySelector('button#play');
 playButton.addEventListener('click', () => {
-  const superBuffer = new Blob(recordedBlobs, {type: 'video/webm'});
-  recordedVideo.src = window.URL.createObjectURL(superBuffer);
-  // workaround for non-seekable video taken from
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=642012#c23
-  recordedVideo.addEventListener('loadedmetadata', () => {
-    if (recordedVideo.duration === Infinity) {
-      recordedVideo.currentTime = 1e101;
-      recordedVideo.ontimeupdate = function() {
-        recordedVideo.currentTime = 0;
-        recordedVideo.ontimeupdate = function() {
-          delete recordedVideo.ontimeupdate;
-          recordedVideo.play();
-        };
-      };
-    } else {
-      recordedVideo.play();
+  var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'blob:http%3A//localhost%3A8000/last_video', true);
+    xhr.responseType = 'blob';
+    xhr.onload = function(e) {
+    if (this.status == 200) {
+      var videoBlob = this.response;
+      // videoBlob is now the blob that the object URL pointed to.
+      // const superBuffer = new Blob(recordedBlobs, {type: 'video/webm'});
+      recordedVideo.src = window.URL.createObjectURL(videoBlob);
+      recordedVideo.addEventListener('loadedmetadata', () => {
+        recordedVideo.play();
+      });
     }
-  });
+  };
+  xhr.send();
 });
 
 const uploadButton = document.querySelector('button#upload');
