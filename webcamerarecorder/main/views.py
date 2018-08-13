@@ -17,6 +17,7 @@ def upload_video(request):
     return JsonResponse({'status': 'OK'})
 
 
+@csrf_exempt
 def last_video(request):
     with open('test.webm', 'rb') as vf:
         response = HttpResponse(vf.read())

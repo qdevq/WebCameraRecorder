@@ -7,6 +7,12 @@ let mediaRecorder;
 let recordedBlobs;
 let sourceBuffer;
 
+// Recording parameters
+const constraints = {
+  audio: true,
+  video: true
+};
+
 const recordedVideo = document.querySelector('video#recorded');
 recordedVideo.addEventListener('error', function(ev) {
   console.error('MediaRecording.recordedMedia.error()');
@@ -19,7 +25,6 @@ recordButton.addEventListener('click', () => {
   } else {
     stopRecording();
     recordButton.textContent = 'Start Recording';
-    playButton.disabled = false;
     uploadButton.disabled = false;
   }
 });
@@ -27,13 +32,11 @@ recordButton.addEventListener('click', () => {
 const playButton = document.querySelector('button#play');
 playButton.addEventListener('click', () => {
   var xhr = new XMLHttpRequest();
-    xhr.open('GET', 'blob:http%3A//localhost%3A8000/last_video', true);
+    xhr.open('GET', '/last_video', true);
     xhr.responseType = 'blob';
     xhr.onload = function(e) {
     if (this.status == 200) {
       var videoBlob = this.response;
-      // videoBlob is now the blob that the object URL pointed to.
-      // const superBuffer = new Blob(recordedBlobs, {type: 'video/webm'});
       recordedVideo.src = window.URL.createObjectURL(videoBlob);
       recordedVideo.addEventListener('loadedmetadata', () => {
         recordedVideo.play();
@@ -62,11 +65,6 @@ if (!isSecureOrigin) {
   alert('getUserMedia() must be run from a secure origin: HTTPS or localhost.\n\nChanging protocol to HTTPS');
   location.protocol = 'HTTPS';
 }
-
-const constraints = {
-  audio: false,
-  video: true
-};
 
 function handleSourceOpen(event) {
   sourceBuffer = mediaSource.addSourceBuffer('video/webm; codecs="vp8"');
@@ -105,7 +103,6 @@ function startRecording() {
     return;
   }
   recordButton.textContent = 'Stop Recording';
-  playButton.disabled = true;
   uploadButton.disabled = true;
   mediaRecorder.onstop = handleStop;
   mediaRecorder.ondataavailable = handleDataAvailable;
@@ -127,6 +124,7 @@ function handleSuccess(stream) {
 
 function handleError(error) {
   console.log('navigator.getUserMedia error: ', error);
+  alert(error.message + '\nCheck if your microphone and camera are turned on.');
 }
 
 navigator.mediaDevices.getUserMedia(constraints).then(handleSuccess).catch(handleError);
